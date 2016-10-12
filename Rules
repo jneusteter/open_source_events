@@ -1,7 +1,10 @@
 #!/usr/bin/env ruby
 
+system('echo "" >> content/index.html')
+
 compile '/**/*.html' do
   layout '/default.*'
+  filter :erb
 end
 
 # This is an example rule that matches Markdown (.md) files, and filters them
