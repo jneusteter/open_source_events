@@ -1,54 +1,39 @@
 #!/home/john/.rvm/rubies/ruby-2.3.0/bin/ruby
 
+require 'erubis'
+require 'sequel'
 require 'twitter'
-require 'yaml'
 
-require './keys.rb'
+require './var/keys.rb'
+Dir[File.dirname(__FILE__) + '/lib/*.rb'].each { |file| require file }
 
-@events = []
-$client.mentions_timeline.each do |tweet|
-  @events << tweet.text
+DB = Sequel.connect('sqlite://var/db.sql')
+
+dataset = DB[:events]
+$client.mentions_timeline.each do |mention|
+  event = Event.new(mention.text)
+  puts mention.text
+  begin
+    if event.delete?
+      dataset.filter(id: event.id).delete
+      # $client.update("@#{mention.user.screen_name} Event has been deleted", in_reply_to_status_id: mention.id)
+    elsif event.id.nil?
+      dataset.insert(name: event.name, starts: event.starts, ends: event.ends)
+      # $client.update("@#{mention.user.screen_name} Thank you, Event has been created!", in_reply_to_status_id: mention.id)
+    else
+      record = dataset.filter(id: event.id)
+      record.update(name: event.name) unless event.name.nil?
+      record.update(starts: event.starts) unless event.starts.nil?
+      record.update(ends: event.ends) unless event.ends.nil?
+      # $client.update("@#{mention.user.screen_name} Thanks you, Events has been updated.", in_reply_to_status_id: mention.id)
+    end
+  rescue
+    # $client.update("@#{mention.user.screen_name} Please see docs for correct command.", in_reply_to_status_id: mention.id)
+  end
 end
 
-File.write('events.yml', @events.to_yaml)
+File.write('web/index.html', Erubis::Eruby.new(File.read('content/index.html')).result(binding))
 
-class Event
-  def initialize(command)
-    @command = command
-  end
-
-  def array
-    @command.gsub(' -', '-').split('-')
-  end
-
-  def add?
-    array.include?('add')
-  end
-
-  def name
-    name = array.select { |name| name[0..3] == 'name' }[0]
-    if name.nil?
-      # nothing
-    else
-      name.gsub('name ', '')
-    end
-  end
-
-  def starts
-    starts = array.select { |starts| starts[0..5] == 'starts' }[0]
-    if starts.nil?
-      # nothing
-    else
-      Date.parse(starts.gsub('starts ', ''))
-    end
-  end
-
-  def ends
-    ends = array.select { |ends| ends[0..3] == 'ends' }[0]
-    if ends.nil?
-      # nothing
-    else
-      Date.parse(ends.gsub('ends', ''))
-    end
-  end
+all_events.each do |event|
+  puts event
 end

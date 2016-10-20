@@ -1,12 +1,29 @@
----
-title: Home
----
+<!doctype html>
+<html class="no-js" lang="">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <title>Open Source Events Calender</title>
+  <meta name="description" content="">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<div class="container">
-  <% events.each do |event| %>
-    <p>
-      <%= event %>
-    </p>
-    <hr>
-  <% end %>
-</div>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+</head>
+<body>
+  <!--[if lt IE 8]>
+  <p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
+  <![endif]-->
+  <div class="container">
+    <% all_events.each do |event| %>
+    <div class="well">
+      <h1><%= event[:name] %><small>(<%= event[:id] %>)</small></h1>
+      <p>
+        Starts: <%= event[:starts] %> <br>
+        Ends: <%= event[:ends] %> <br>
+      </p>
+    </div>
+    <% end %>
+  </div>
+</body>
+</html>
